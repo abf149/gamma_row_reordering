@@ -125,7 +125,7 @@ void convert_adjacency_list_to_csr() {
 
 	printf("- Converting adjacency list to CSR.\n");
 
-	int prev_edge_edx = 0, source_last_seen = -1;
+	int prev_edge_edx = 0, source_last_seen = NO_INDEX;
 
 	for (int edx=0; edx < metadata_edges; edx++) {
 
@@ -263,6 +263,13 @@ void save_csr() {
 
 }
 
+void free_all() {
+	free(adjacency_list);
+	free(vertices);
+	free(edges);
+	free(values);
+}
+
 int main(void) {
 
 	load_mtx_unsorted_asymmetric_adjacency_list_from_stdin();
@@ -276,6 +283,8 @@ int main(void) {
 	print_csr();
 
 	save_csr();
+
+	free_all();
 
 	return 0;
 }
