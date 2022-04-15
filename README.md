@@ -3,7 +3,7 @@
 Builds on the work on serial affinity-based row-reordering done in GAMMA (Zhang, et. al. 2021)
 [Link to paper](https://people.csail.mit.edu/emer/papers/2021.04.asplos.gamma.pdf)
 
-This repo furnishes a set of tools for working converting graphs to compressed-sparse row (CSR) format and for running row-reordering on graphs in CSR representation.
+This repo furnishes a set of tools for converting graphs to compressed-sparse row (CSR) format and for running row-reordering on graphs in CSR representation.
 
 The serial affinity-based row-reordering algorithm is designed to increase the effiency of sparse matrix mulitplication (spGEMM, Z = A*B) by reordering the rows of A to maximize the reuse of rows of B.
 
