@@ -165,14 +165,14 @@ void free_all() {
 
 int main(int argc, char *argv[]) {
 
-	assert(argc == 3);
+	assert(argc == 4);
 
 	metadata_rows = atoi(argv[1]);
-	metadata_columns = metadata_rows;
+	metadata_columns = atoi(argv[2]);
 
 	metadata_edges = ((float)(metadata_rows*metadata_columns))*((float)((100.0 * rand() / (RAND_MAX + 1.0)) + 1));
 
-	density_pct = atoi(argv[2]);
+	density_pct = atoi(argv[3]);
 
 	random_square_csr();
 	print_csr();
