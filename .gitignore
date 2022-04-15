@@ -2,6 +2,8 @@ permutation_example.txt
 *.swp
 sut
 sre
+pin
+pre
 rcsr
 *.csr
 mat.csr.bk
