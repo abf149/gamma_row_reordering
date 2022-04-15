@@ -1,4 +1,11 @@
+permutation_example.txt
 *.swp
 sut
 sre
+rcsr
 *.csr
+mat.csr.bk
+serial_experiments_data
+cpuinfo.txt
+meminfo.txt
+time.txt
