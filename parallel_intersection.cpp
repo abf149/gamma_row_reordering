@@ -444,16 +444,19 @@ void parallel_row_intersection(){
         auto t1 = high_resolution_clock::now();
 
 	int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
-	cilk::reducer_opadd<int> sum;
+	cilk::reducer_opadd<long long int> sum;
 
-	int row_0_edge_count = vertices[1] - vertices[0];
-	int row_1_edge_count = vertices[2] - vertices[1];
-	int total_edge_combinations = row_0_edge_count*row_1_edge_count;
-	cilk_for (int r=0; r<total_edge_combinations; r++) {
-		int r0_pos = r % row_0_edge_count + vertices[0];
-		int r1_pos = ((int)r/row_0_edge_count) + vertices[1];
-		int r0_coord = edges[r0_pos];
-		int r1_coord = edges[r1_pos];
+	long long int row_0_edge_count = vertices[1] - vertices[0];
+	cout<<"row_0_edge_count: "<<row_0_edge_count<<endl;
+	long long int row_1_edge_count = vertices[2] - vertices[1];
+        cout<<"row_1_edge_count: "<<row_1_edge_count<<endl;
+        long long int total_edge_combinations = row_0_edge_count*row_1_edge_count;
+	cout<<"total_edge_combinations: "<<total_edge_combinations<<endl;
+	cilk_for (long long int r=0; r<total_edge_combinations; r++) {
+		long long int r0_pos = r % row_0_edge_count + ((long long int)vertices[0]);
+		long long int r1_pos = ((long long int)r/row_0_edge_count) + ((long long int)vertices[1]);
+		long long int r0_coord = edges[r0_pos];
+		long long int r1_coord = edges[r1_pos];
 		
 		if (r0_coord == r1_coord) {
 			sum++;
@@ -481,7 +484,7 @@ void parallel_row_intersection(){
 int main() {
 	cout<<"Loading..."<<endl;
 	load_mtx_csr_from_stdin();
-//	print_csr();
+	print_csr();
 	cout<<"Intersecting rows..."<<endl;
 	parallel_row_intersection();
 //	print_permutation();
