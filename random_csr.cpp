@@ -51,7 +51,7 @@ void random_square_csr() {
 	for (int rdx=0; rdx<metadata_rows; rdx++) {
 		vertices[rdx] = edge_ptr+1;
 		for (int cdx=0; cdx<metadata_columns; cdx++) {
-			if ( ((int)(100.0 * rand() / (RAND_MAX + 1.0)) + 1) < density_pct) {
+			if ( ((int)(100.0 * rand() / (RAND_MAX + 1.0))) < density_pct) {
 				edge_ptr++;
 				edges_tmp[edge_ptr] = cdx;
 				values[edge_ptr] = 1.0;

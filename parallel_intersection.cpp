@@ -1,5 +1,6 @@
 #include <iostream>
-#include <stdio.h>
+//#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -18,10 +19,10 @@
 #define IS_RIGHT_CHILD(x) (x+1)%2>0
 
 using namespace std;
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
-using std::chrono::duration;
-using std::chrono::milliseconds;
+using chrono::high_resolution_clock;
+using chrono::duration_cast;
+using chrono::duration;
+using chrono::milliseconds;
 
 // Asymmetric compressed-sparse row (CSR) representation
 // *edges and *values must be allocated to length metadata_edges
@@ -61,59 +62,59 @@ Format:
 */
 void load_mtx_csr_from_stdin() {
 
-	char *serialized_data;
-	size_t len;
+	string serialized_data;
 
-	printf("Loading CSR matrix...\n");
-	printf("- Loading metadata line.\n");
-	assert(getline(&serialized_data, &len, stdin) != EOF);
-	printf("%s\n",serialized_data);
+	cout<<"Loading CSR matrix..."<<endl;
+	cout<<"- Loading metadata line.\n"<<endl;
+	getline(cin,serialized_data);
+	cout<<serialized_data<<endl;
 
 	// Extract metadata
-	printf("- Extracting.\n");
-	sscanf(serialized_data, "%d %d %d", &metadata_rows, &metadata_columns, &metadata_edges);
+	cout<<"- Extracting."<<endl;
+	sscanf(serialized_data.c_str(), "%d %d %d", &metadata_rows, &metadata_columns, &metadata_edges);
 
-	printf("- Rows: %d Columns: %d Edges: %d\n", metadata_rows, metadata_columns, metadata_edges);
+	cout<<"- Rows: "<<metadata_rows<<" Columns: "<<metadata_columns<<" Edges: "<<metadata_edges<<endl;
 
-	printf("- Allocating CSR representation memory...\n");
+	cout<<"- Allocating CSR representation memory..."<<endl;
 
 	// Allocating CSR memory
 	edges = (int *) malloc(metadata_edges * sizeof(int));
 	values = (double *) malloc(metadata_edges * sizeof(double));
 	vertices = (int  *) malloc((metadata_rows + 1) * sizeof(int));
 
-	printf("- Reading vertices...\n");
+	cout<<"- Reading vertices..."<<endl;
 
 	// Read VERTICES preamble
-	assert(getline(&serialized_data, &len, stdin) != EOF);
-	assert(strcmp(serialized_data,"VERTICES\n") == 0);
+	getline(cin,serialized_data);
+        assert(strcmp(serialized_data.c_str(),"VERTICES") == 0);
 
 	// Read vertices until we hit EDGES preamble
 	int i=0;
-	while (getline(&serialized_data, &len, stdin) != EOF && strcmp(serialized_data,"EDGES\n") != 0) {
-		assert(i < (metadata_rows+1));
+	//cout<<"metadata_rows: "<<metadata_rows<<endl;
+	while (getline(cin,serialized_data) && strcmp(serialized_data.c_str(),"EDGES") != 0) {
+ 		assert(i < (metadata_rows+1));
 		int vertex_edge_edx = 0;
-		sscanf(serialized_data, "%d", &vertex_edge_edx);
+		sscanf(serialized_data.c_str(), "%d", &vertex_edge_edx);
 		vertices[i] = vertex_edge_edx;
 		i++;
 	}
 
 	// Read edges until we hit VALUES preamble
 	i=0;
-	while (getline(&serialized_data, &len, stdin) != EOF && strcmp(serialized_data,"VALUES\n") != 0) {
+	while (getline(cin,serialized_data) && strcmp(serialized_data.c_str(),"VALUES") != 0) {
 		assert(i < metadata_edges);
 		int edge_destination_vertex = 0;
-		sscanf(serialized_data, "%d", &edge_destination_vertex);
+		sscanf(serialized_data.c_str(), "%d", &edge_destination_vertex);
 		edges[i] = edge_destination_vertex;
 		i++;
 	}
 
 	// Read values until EOF
 	i=0;
-	while (getline(&serialized_data, &len, stdin) != EOF) {
+	while (getline(cin,serialized_data)) {
 		assert(i < metadata_edges);
 		double value = 0;
-		sscanf(serialized_data, "%lf", &value);
+		sscanf(serialized_data.c_str(), "%lf", &value);
 		values[i] = value;
 		i++;
 	}
@@ -124,49 +125,49 @@ Print head/tail of CSR representation
 */
 void print_csr() {
 
-        printf("- CSR preview:\n");
+        cout<<"- CSR preview:"<<endl;
 
-	printf("-- Vertices:\n");
+	cout<<"-- Vertices:"<<endl;
 
         // Print vertices head
 
         for (int i=0; i < ((5 < (metadata_rows+1)) ? 5 : (metadata_rows+1)); i++) {
 
-                printf("vertices[%d] == %d \n", i, vertices[i]);
+                cout<<"vertices["<<i<<"] == "<<vertices[i]<<endl;
 
         }
 
-        printf("\n...\n\n");
+        cout<<endl<<"..."<<endl<<endl;
 
         if (5 < metadata_rows) {
 
                 // Print tail
                 for (int i=((5 > (metadata_rows + 1) - 5) ? 5 : ((metadata_rows + 1) - 5)); i < metadata_rows + 1; i++) {
 
-                        printf("vertices[%d] == %d \n", i, vertices[i]);
+                        cout<<"vertices["<<i<<"] == "<<vertices[i]<<endl;
 
                 }
 
         }
 
-	printf("-- Edges and values:\n");
+	cout<<"-- Edges and values:"<<endl;
 
 	// Print edges & values head
 
         for (int i=0; i < ((5 < metadata_edges) ? 5 : metadata_edges); i++) {
 
-		printf("edges[%d] == %d values[%d] == %lf\n", i, edges[i], i, values[i]);
+		cout<<"edges["<<i<<"] == "<<edges[i]<<" values["<<i<<"] == "<<values[i]<<endl;
 
         }
 
-        printf("\n...\n\n");
+        cout<<endl<<"..."<<endl<<endl;
 
         if (5 < metadata_edges) {
 
                 // Print tail
                 for (int i=((5 > metadata_edges - 5) ? 5 : (metadata_edges - 5)); i < metadata_edges; i++) {
 
-			printf("edges[%d] == %d values[%d] == %lf\n", i, edges[i], i, values[i]);
+			cout<<"edges["<<i<<"] == "<<edges[i]<<" values["<<i<<"] == "<<values[i]<<endl;
 
                 }
 
@@ -211,7 +212,7 @@ pq_item pop_row(vector<pq_item>* pq, vector<int>* row_positions) {
 
 	// Remove max-affinity element
 	int heap_size = pqRef.size();
-	//printf("Popping: %d\n", pqRef[HEAP_ROOT].row);
+	//cout<<"Popping: %d\n", pqRef[HEAP_ROOT].row);
 	row_positionsRef[pqRef[HEAP_ROOT].row] = -1;
 	overwrite_pq_position(HEAP_ROOT,heap_size-1,pq,row_positions);
 	heap_size--;
@@ -241,7 +242,7 @@ pq_item pop_row(vector<pq_item>* pq, vector<int>* row_positions) {
 }
 
 void increment_row_affinity(int row, vector<pq_item>* pq, vector<int>* row_positions) {
-	//printf("****Incrementing affinity\n");
+	//cout<<"****Incrementing affinity\n");
 
         vector<pq_item>& pqRef = *pq;
         vector<int>& row_positionsRef = *row_positions;
@@ -265,7 +266,7 @@ void decrement_row_affinity(int row, vector<pq_item>* pq, vector<int>* row_posit
         vector<pq_item>& pqRef = *pq;
         vector<int>& row_positionsRef = *row_positions;
 
-        //printf("****Decrementing affinity\n");
+        //cout<<"****Decrementing affinity\n");
 
         // Decrement row affinity
         int heap_size = pqRef.size();
@@ -296,13 +297,13 @@ void print_priority_queue(vector<pq_item>* pq, vector<int>* row_positions) {
         vector<pq_item>& pqRef = *pq;
         vector<int>& row_positionsRef = *row_positions;
 
-//	printf("- Priority queue state:\n");
-//	printf("-- pq: [ ");
-	for (int i=0; i<pq->size(); i++) printf("R%dA%d ", pqRef[i].row, pqRef[i].affinity);
-//	printf("]\n");
-//	printf("-- row_positions: [ ");
-	for (int i=0; i<row_positions->size(); i++) printf("%d ",row_positionsRef[i]);
-//	printf("]\n");
+//	cout<<"- Priority queue state:\n");
+//	cout<<"-- pq: [ ");
+	for (int i=0; i<pq->size(); i++) cout<<"R"<<pqRef[i].row<<"A"<<pqRef[i].affinity<<" ";
+//	cout<<"]\n");
+//	cout<<"-- row_positions: [ ");
+	for (int i=0; i<row_positions->size(); i++) cout<<row_positionsRef[i]<<" ";
+//	cout<<"]\n");
 }
 
 void serial_row_reorder()
@@ -341,19 +342,19 @@ void serial_row_reorder()
 	// Greedily reorder one row at a time
 	for (int r_permutation=1; r_permutation<metadata_rows; r_permutation++) {
 
-//		printf("r_permutation == %d\n", r_permutation);
+//		cout<<"r_permutation == %d\n", r_permutation);
 
 		// Examine the last reordered row, and
 		r0_coord = permutation[r_permutation - 1];
 
-//		printf("r0_coord == %d\n", r0_coord);
+//		cout<<"r0_coord == %d\n", r0_coord);
 
 		// For each nonzero column position in compressed representation of the row,
 		payload_length0 = vertices[r0_coord+1] - vertices[r0_coord];
 		edge_offset0=vertices[r0_coord];
 		for (c0_pos=0; c0_pos<payload_length0; c0_pos++) {
 			c0_coord=edges[edge_offset0+c0_pos];
-			//printf("c0_coord: %d\n", c0_coord);
+			//cout<<"c0_coord: %d\n", c0_coord);
 
 			// For each un-reordered row, other than the one we just reordered,
 			for (r1_coord=0; r1_coord<metadata_rows; r1_coord++) {
@@ -364,7 +365,7 @@ void serial_row_reorder()
 					payload_length1 = vertices[r1_coord+1] - vertices[r1_coord];
 					edge_offset1=vertices[r1_coord];
 					for (c1_pos=0; edges[edge_offset1+c1_pos] < c0_coord+1; c1_pos++) {
-						//printf("edge_offset0: %d r0_coord: %d c0_coord: %d edge_offset1: %d r1_coord: %d c1_coord: %d\n", 
+						//cout<<"edge_offset0: %d r0_coord: %d c0_coord: %d edge_offset1: %d r1_coord: %d c1_coord: %d\n", 
 						//	edge_offset0,    r0_coord,    c0_coord,    edge_offset1,    r1_coord,    edges[edge_offset1+c1_pos]);
 						if (c0_coord ==  edges[edge_offset1+c1_pos]) {
 							//increase key
@@ -388,7 +389,7 @@ void serial_row_reorder()
 	                for (c0_pos=0; c0_pos<payload_length0; c0_pos++) {
         	                c0_coord=edges[edge_offset0+c0_pos];
 
-				//printf("DECR c0_coord: %d\n", c0_coord);
+				//cout<<"DECR c0_coord: %d\n", c0_coord);
 
 	                        // For each un-reordered row, other than the one we just reordered,
         	                for (r1_coord=0; r1_coord<metadata_rows; r1_coord++) {
@@ -399,7 +400,7 @@ void serial_row_reorder()
                         	                payload_length1 = vertices[r1_coord+1] - vertices[r1_coord];
                                 	        edge_offset1=vertices[r1_coord];
 	                                        for (c1_pos=0; edges[edge_offset1+c1_pos] < c0_coord+1; c1_pos++) {
-							//printf("DECR r0_coord: %d c0_coord: %d r1_coord: %d c1_coord: %d\n", r0_coord, c0_coord, r1_coord, edges[edge_offset1+c1_pos]);
+							//cout<<"DECR r0_coord: %d c0_coord: %d r1_coord: %d c1_coord: %d\n", r0_coord, c0_coord, r1_coord, edges[edge_offset1+c1_pos]);
         	                                        if (c0_coord ==  edges[edge_offset1+c1_pos]) {
 								//decrease key
 								decrement_row_affinity(r1_coord, &pq, &row_positions);
@@ -414,7 +415,7 @@ void serial_row_reorder()
 		}
 
 		reordered_row=pop_row(&pq, &row_positions);
-//		printf("- reordered_row: %d affinity: %d\n", reordered_row.row, reordered_row.affinity);
+//		cout<<"- reordered_row: %d affinity: %d\n", reordered_row.row, reordered_row.affinity);
 
 		permutation[r_permutation] = reordered_row.row;
 	}
@@ -423,13 +424,13 @@ void serial_row_reorder()
 
 	auto ms_int = duration_cast<milliseconds>(t2-t1);
 
-	cout<< ms_int.count() << "\n";
+	cout<< ms_int.count() << endl;
 }
 
 void print_permutation() {
-	printf("Printing row permuation.\n\n");
-	for (int i=0; i<metadata_rows; i++)  printf("%d ", permutation[i]);
-	printf("\n");
+	cout<<"Printing row permuation."<<endl<<endl;
+	for (int i=0; i<metadata_rows; i++)  cout<<permutation[i]<<" ";
+	cout<<endl;
 }
 
 void free_all() {
@@ -440,6 +441,8 @@ void free_all() {
 }
 
 void parallel_row_intersection(){
+        auto t1 = high_resolution_clock::now();
+
 	int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
 	cilk::reducer_opadd<int> sum;
 
@@ -459,23 +462,29 @@ void parallel_row_intersection(){
 	cilk_sync;
 
 /*
-	printf("intersection_vector: [ ");
+	cout<<"intersection_vector: [ ");
 	for (int i=0; i<metadata_columns; i++) {
-		printf("%d ", intersection_vector[i]);
+		cout<<"%d ", intersection_vector[i]);
 	}
-	printf("]\n");
+	cout<<"]\n");
 */
 
-	printf("Sum: %d\n", sum.get_value());
+        auto t2 = high_resolution_clock::now();
+
+        auto ms_int = duration_cast<milliseconds>(t2-t1);
+
+        cout<<"Intersection runtime: "<< ms_int.count() << endl;
+
+	cout<<"Sum: "<<sum.get_value()<<endl;
 }
 
 int main() {
-	printf("Loading...\n");
+	cout<<"Loading..."<<endl;
 	load_mtx_csr_from_stdin();
 //	print_csr();
-	printf("Intersecting rows...\n");
+	cout<<"Intersecting rows..."<<endl;
 	parallel_row_intersection();
 //	print_permutation();
-	printf("Freeing...\n");
+	cout<<"Freeing..."<<endl;
 	free_all();
 }
