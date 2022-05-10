@@ -12,7 +12,7 @@ using namespace std;
 int metadata_rows = 0;
 int metadata_columns = 0;
 int metadata_edges = 0;
-int density_pct = 0;
+double density_pct = 0.0;
 
 // Asymmetric compressed-sparse row (CSR) representation
 // *edges and *values must be allocated to length metadata_edges
@@ -51,7 +51,7 @@ void random_square_csr() {
 	for (int rdx=0; rdx<metadata_rows; rdx++) {
 		vertices[rdx] = edge_ptr+1;
 		for (int cdx=0; cdx<metadata_columns; cdx++) {
-			if ( ((int)(100.0 * rand() / (RAND_MAX + 1.0))) < density_pct) {
+			if ( ((100.0 * rand() / (RAND_MAX + 1.0))) < density_pct) {
 				edge_ptr++;
 				edges_tmp[edge_ptr] = cdx;
 				values[edge_ptr] = 1.0;
@@ -75,7 +75,7 @@ Print head/tail of CSR representation
 */
 void print_csr() {
 
-        printf("- CSR preview (%d rows, %d columns, %d edges, density %d%%):\n", metadata_rows, metadata_columns, metadata_edges, density_pct);
+        printf("- CSR preview (%d rows, %d columns, %d edges, density %f%%):\n", metadata_rows, metadata_columns, metadata_edges, density_pct);
 
         printf("-- Vertices:\n");
 
@@ -172,7 +172,11 @@ int main(int argc, char *argv[]) {
 
 	metadata_edges = ((float)(metadata_rows*metadata_columns))*((float)((100.0 * rand() / (RAND_MAX + 1.0)) + 1));
 
-	density_pct = atoi(argv[3]);
+	char *eptr;
+
+	density_pct = strtod(argv[3],&eptr);
+
+	printf("Density: %f\n",density_pct);
 
 	random_square_csr();
 	print_csr();

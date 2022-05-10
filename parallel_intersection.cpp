@@ -440,18 +440,17 @@ void free_all() {
 	free(permutation);
 }
 
-void parallel_row_intersection(){
-        auto t1 = high_resolution_clock::now();
+void parallel_row_intersection_helper(){
 
-	int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
+	//int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
 	cilk::reducer_opadd<long long int> sum;
 
 	long long int row_0_edge_count = vertices[1] - vertices[0];
-	cout<<"row_0_edge_count: "<<row_0_edge_count<<endl;
+	//cout<<"row_0_edge_count: "<<row_0_edge_count<<endl;
 	long long int row_1_edge_count = vertices[2] - vertices[1];
-        cout<<"row_1_edge_count: "<<row_1_edge_count<<endl;
+        //cout<<"row_1_edge_count: "<<row_1_edge_count<<endl;
         long long int total_edge_combinations = row_0_edge_count*row_1_edge_count;
-	cout<<"total_edge_combinations: "<<total_edge_combinations<<endl;
+	//cout<<"total_edge_combinations: "<<total_edge_combinations<<endl;
 	cilk_for (long long int r=0; r<total_edge_combinations; r++) {
 		long long int r0_pos = r % row_0_edge_count + ((long long int)vertices[0]);
 		long long int r1_pos = ((long long int)r/row_0_edge_count) + ((long long int)vertices[1]);
@@ -459,32 +458,38 @@ void parallel_row_intersection(){
 		long long int r1_coord = edges[r1_pos];
 		
 		if (r0_coord == r1_coord) {
-			sum++;
+			*sum += 1;
 		}
 	}
 	cilk_sync;
 
-/*
-	cout<<"intersection_vector: [ ");
-	for (int i=0; i<metadata_columns; i++) {
-		cout<<"%d ", intersection_vector[i]);
-	}
-	cout<<"]\n");
-*/
+	sum.get_value();
+
+	//cout<<"Sum: "<<sum.get_value()<<endl;
+}
+
+void parallel_row_intersection() {
+        long long int niter=metadata_columns*metadata_columns;
+
+        auto t1 = high_resolution_clock::now();
+
+        cilk_for(long long int kdx=0; kdx < niter; kdx++) {
+		parallel_row_intersection_helper();
+        }
+	cilk_sync;
 
         auto t2 = high_resolution_clock::now();
 
         auto ms_int = duration_cast<milliseconds>(t2-t1);
 
         cout<<"Intersection runtime: "<< ms_int.count() << endl;
-
-	cout<<"Sum: "<<sum.get_value()<<endl;
 }
 
 int main() {
 	cout<<"Loading..."<<endl;
 	load_mtx_csr_from_stdin();
 	print_csr();
+//	serial_row_reorder();
 	cout<<"Intersecting rows..."<<endl;
 	parallel_row_intersection();
 //	print_permutation();

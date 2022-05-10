@@ -306,7 +306,7 @@ void print_priority_queue(vector<pq_item>* pq, vector<int>* row_positions) {
 //	cout<<"]\n");
 }
 
-void parallel_row_reorder()
+void serial_row_reorder()
 {
 	auto t1 = high_resolution_clock::now();
 
@@ -427,47 +427,6 @@ void parallel_row_reorder()
 	cout<< ms_int.count() << endl;
 }
 
-/*
-
-void parallel_row_reorder()
-{
-        auto t1 = high_resolution_clock::now();
-
-	int reordered_row = 0;
-
-        int* affinity_array = (int *) calloc(metadata_rows, sizeof(int));; // affinity array for row affinities
-        permutation = (int  *) malloc(metadata_rows * sizeof(int));
-
-        // Seed the permutation with the first row
-        permutation[0] = 0;
-        affinity_array[0] = -1;
-
-        // Algorithm tuning parameter
-        int window = 10;
-
-        for (int r_permutation=1; r_permutation<metadata_rows; r_permutation++) {
-		cilk:reducer_max_index<int,int>  max_affinity_row;
-		cilk::reducer_opadd<long long int> sum;
-
-		cilk_for (int i=0; i < metadata_rows; i++)
-			cilk::max_of(max_affinity_row, affinity_array[i]);
-
-		reordered_row = max_affinity_row.get_index();
-		cout<<"- reordered_row: "<<reordered_row<<" affinity: "<<affinity_array[reordered_row]<<endl;
-		permutation[r_permutation] = reordered_row;
-	}
-
-        auto t2 = high_resolution_clock::now();
-
-        auto ms_int = duration_cast<milliseconds>(t2-t1);
-
-        cout<< ms_int.count() << endl;
-
-	free(affinity_array);
-
-}
-*/
-
 void print_permutation() {
 	cout<<"Printing row permuation."<<endl<<endl;
 	for (int i=0; i<metadata_rows; i++)  cout<<permutation[i]<<" ";
@@ -482,7 +441,10 @@ void free_all() {
 }
 
 void parallel_row_intersection(){
-        auto t1 = high_resolution_clock::now();
+        auto t1 = high_resolution_clock::
+now();
+
+	for (int kdx=0; kdx<metadata_rows
 
 	int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
 	cilk::reducer_opadd<long long int> sum;
@@ -522,59 +484,13 @@ void parallel_row_intersection(){
 	cout<<"Sum: "<<sum.get_value()<<endl;
 }
 
-/*
-
-void parallel_row_reorder() {
-        auto t1 = high_resolution_clock::now();
-
-        vector<pq_item> pq; // Priority-queue for row affinities
-        vector<int> row_positions(metadata_rows, 0); // Positions of row affinities in Q
-        permutation = (int  *) malloc(metadata_rows * sizeof(int));
-
-        // Seed the permutation with the first row
-        permutation[0] = 0;
-        row_positions[0] = -1;
-        for (int i=1; i<metadata_rows; i++) {
-                // Add all rows to priority queue except the first
-                pq_item temp;
-                temp.row=i;
-               temp.affinity=0;
-                pq.push_back(temp);
-                row_positions[i] = i-1;
-        }
-
-        // Algorithm tuning parameter
-        int window = 10;
-
-        // Using Fibertree notation
-        int payload_length0=0, payload_length1=0;
-        int r0_coord=0, r1_coord=0;
-        int edge_offset0=0, edge_offset1=0;
-        int c0_pos=0, c1_pos=0, c0_coord=0;
-
-        pq_item reordered_row;
-
-//      print_priority_queue(&pq, &row_positions);
-
-        // Greedily reorder one row at a time
-        for (int r_permutation=1; r_permutation<metadata_rows; r_permutation++) {
-
-//              printf("r_permutation == %d\n", r_permutation);
-
-                // Examine the last reordered row, and
-                r0_coord = permutation[r_permutation - 1]
-
-        // Algorithm tuning parameter
-*/
-
 int main() {
 	cout<<"Loading..."<<endl;
 	load_mtx_csr_from_stdin();
 	print_csr();
-	cout<<"Parallel row-reordering..."<<endl;
-	parallel_row_reorder();
-//	cout<<"Intersecting rows..."<<endl;
-//	parallel_row_intersection();
+//	serial_row_reorder();
+	cout<<"Intersecting rows..."<<endl;
+	parallel_row_intersection();
 //	print_permutation();
 	cout<<"Freeing..."<<endl;
 	free_all();
