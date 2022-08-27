@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cilk/cilk.h>
 #include <cilk/reducer_opadd.h>
+#include <cilk/reducer_max.h>
 
 #define HEAP_ROOT 0
 #define LEFT_CHILD(x) 2*x+1
@@ -306,6 +307,8 @@ void print_priority_queue(vector<pq_item>* pq, vector<int>* row_positions) {
 //	cout<<"]\n");
 }
 
+/*
+
 void parallel_row_reorder()
 {
 	auto t1 = high_resolution_clock::now();
@@ -427,7 +430,10 @@ void parallel_row_reorder()
 	cout<< ms_int.count() << endl;
 }
 
-/*
+*/
+
+
+long long int parallel_row_intersection(int row_0_idx, int row_1_idx);
 
 void parallel_row_reorder()
 {
@@ -435,26 +441,37 @@ void parallel_row_reorder()
 
 	int reordered_row = 0;
 
-        int* affinity_array = (int *) calloc(metadata_rows, sizeof(int));; // affinity array for row affinities
+ 
+        long long int* affinity_array = (long long int *) calloc(metadata_rows, sizeof(long long int));; // affinity array for row affinities
         permutation = (int  *) malloc(metadata_rows * sizeof(int));
 
         // Seed the permutation with the first row
         permutation[0] = 0;
-        affinity_array[0] = -1;
+        affinity_array[0] = (long long int)-1;
 
         // Algorithm tuning parameter
         int window = 10;
 
         for (int r_permutation=1; r_permutation<metadata_rows; r_permutation++) {
-		cilk:reducer_max_index<int,int>  max_affinity_row;
+		cilk::reducer_max_index<int,int>  max_affinity_row;
 		cilk::reducer_opadd<long long int> sum;
 
+
+		for (int i=0; i < metadata_rows; i++) {
+			if (affinity_array[i] != (long long int)-1) {
+				affinity_array[i] += parallel_row_intersection(permutation[r_permutation-1], i);
+			}
+		}
+
+		// Find max-affinity row
 		cilk_for (int i=0; i < metadata_rows; i++)
-			cilk::max_of(max_affinity_row, affinity_array[i]);
+			if (affinity_array[i] != (long long int)-1)
+				max_affinity_row.calc_max(max_affinity_row, affinity_array[i]);
 
 		reordered_row = max_affinity_row.get_index();
 		cout<<"- reordered_row: "<<reordered_row<<" affinity: "<<affinity_array[reordered_row]<<endl;
 		permutation[r_permutation] = reordered_row;
+		affinity_array[reordered_row] = (long long int)-1;
 	}
 
         auto t2 = high_resolution_clock::now();
@@ -466,7 +483,7 @@ void parallel_row_reorder()
 	free(affinity_array);
 
 }
-*/
+
 
 void print_permutation() {
 	cout<<"Printing row permuation."<<endl<<endl;
@@ -480,22 +497,21 @@ void free_all() {
 	free(values);
 	free(permutation);
 }
-
-void parallel_row_intersection(){
+long long int parallel_row_intersection(int row_0_idx, int row_1_idx){
         auto t1 = high_resolution_clock::now();
 
 	int* intersection_vector = (int*)calloc(metadata_columns, sizeof(int));
 	cilk::reducer_opadd<long long int> sum;
 
-	long long int row_0_edge_count = vertices[1] - vertices[0];
+	long long int row_0_edge_count = vertices[row_0_idx+1] - vertices[row_0_idx];
 	cout<<"row_0_edge_count: "<<row_0_edge_count<<endl;
-	long long int row_1_edge_count = vertices[2] - vertices[1];
+	long long int row_1_edge_count = vertices[row_1_idx+1] - vertices[row_1_idx];
         cout<<"row_1_edge_count: "<<row_1_edge_count<<endl;
         long long int total_edge_combinations = row_0_edge_count*row_1_edge_count;
 	cout<<"total_edge_combinations: "<<total_edge_combinations<<endl;
 	cilk_for (long long int r=0; r<total_edge_combinations; r++) {
-		long long int r0_pos = r % row_0_edge_count + ((long long int)vertices[0]);
-		long long int r1_pos = ((long long int)r/row_0_edge_count) + ((long long int)vertices[1]);
+		long long int r0_pos = r % row_0_edge_count + ((long long int)vertices[row_0_idx]);
+		long long int r1_pos = ((long long int)r/row_0_edge_count) + ((long long int)vertices[row_1_idx]);
 		long long int r0_coord = edges[r0_pos];
 		long long int r1_coord = edges[r1_pos];
 		
@@ -504,6 +520,8 @@ void parallel_row_intersection(){
 		}
 	}
 	cilk_sync;
+
+	return sum.get_value();
 
 /*
 	cout<<"intersection_vector: [ ");
